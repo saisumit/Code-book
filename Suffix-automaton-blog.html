@@ -1,0 +1,427 @@
+<em>What is suffix - automaton ?</em>
+<blockquote>Suffix - Automaton of a string "S" in simple terms is a directed a-cyclic graph where vertices or nodes are called "<strong><em>states</em></strong>" and the arcs or the edges between these nodes is called the "<strong><em>transition</em></strong>" between these states.
+
+One of the state(node) denoted by  "<strong>T</strong><em><strong>o</strong>"   </em>is called the "<strong><em>Initial state"</em></strong><em> </em> of the suffix-automaton  <strong> </strong>from where we can reach to all other states in the automaton.
+
+One or more of this states are marked as  "<em><strong>Terminal</strong> <strong>states</strong>" </em>such that if we go from<em> " <strong>To </strong>" </em>to any of these terminal states and note down the labels of the edges what we get is a suffix of the original string "S".</blockquote>
+<em>Why am i reading this shit ? what use it is for me ?</em>
+
+Hey ') don't worry , its one of the best structures to solve almost all problems related to string and the best thing about this is that almost 20-30 lines of code can solve all the under listed problems that too with a Time Complexity of O(n) and space complexity of O(n) .  Wow that's awesome man :)
+
+What it looks like? I know many of them, have a look ;)
+<pre> 
+That's for string "<em><strong>aa</strong>" -&gt;</em>
+<img class="alignnone size-full wp-image-36" src="https://saisumit.files.wordpress.com/2016/01/suffix_automaton_sample_3.gif" alt="suffix_automaton_sample_3" width="167" height="47" />
+
+</pre>
+<pre>That's for string "<em><strong>aba</strong>" -&gt;</em>
+<img class="alignnone size-full wp-image-37" src="https://saisumit.files.wordpress.com/2016/01/suffix_automaton_sample_5.gif" alt="suffix_automaton_sample_5" width="228" height="71" /></pre>
+<pre>That's for string "<em><strong>abb</strong>" -&gt;</em>
+<img class="alignnone size-full wp-image-38" src="https://saisumit.files.wordpress.com/2016/01/suffix_automaton_sample_6.gif" alt="suffix_automaton_sample_6" width="228" height="101" /></pre>
+<pre>That's for string "<em><strong>abbb</strong>" -&gt;
+</em><img class="alignnone size-full wp-image-39" src="https://saisumit.files.wordpress.com/2016/01/suffix_automaton_sample_7.gif" alt="suffix_automaton_sample_7" width="290" height="108" />
+Still not satisfied go to this link (preferably with firefox) enter the string and and wait for magic to happen  <a href="http://rain.ifmo.ru/cat/view.php/vis/strings/suffix-automaton-build-2009">DRAW SUFFIX AUTOMATA</a> 
+</pre>
+&nbsp;
+
+<strong><em><span style="text-decoration: underline;">PROBLEMS IT SOLVES </span></em></strong>
+<ol>
+	<li>Number of different substrings of a given string .</li>
+	<li>Total length of various substrings.</li>
+	<li>Lexographically k<sup>th</sup> substring.</li>
+	<li>smallest Cyclic shift.</li>
+	<li>No. of occurrences of a pattern in the given Text.</li>
+	<li>Position of all Occurrences.</li>
+	<li>Longest common substring.</li>
+	<li>Longest Common substring of multiple substring.</li>
+	<li>Search for shortest substring that is not included in this string.</li>
+</ol>
+<h3>So Lets Begin :)</h3>
+&nbsp;
+<h4><span style="text-decoration: underline;"><em><strong>Properties of Suffix Automaton</strong></em></span></h4>
+<ul>
+<ul>
+	<li> It contains all the information about all the substrings of the string. Take any path from the "<em><strong>Initial State (t<sub>o</sub>)"</strong> <strong>  </strong></em>and write down the label of the edges and terminate that path at any state ( not necessarily a terminal state ) , what we obtain is a substring of the given string and if we write down all such paths we get all distinct substrings. Conversely any substring of the string "S" corresponds to a path in suffix automaton starting from "<em><strong>Initial State (t<sub>o</sub>)" . </strong></em></li>
+</ul>
+</ul>
+&nbsp;
+
+<em><strong><span style="text-decoration: underline;">The "</span></strong><span style="text-decoration: underline;"><em><strong>endpos" class -  "the building block of suffix-automaton</strong> </em>:</span>  </em>Consider a non-empty substring "T" of "S" , then endpos(T) is the set of all the positions where T ends in S .We call two strings s1 ,s2 endpos-equivalent if their sets of endings are identical. That is  (endpos(s1) == endpos(s2) ).
+<blockquote>Help Please!  I don't understand without examples:</blockquote>
+<strong><em>Consider string "aba"</em></strong>
+<ol>
+	<li><strong><em>endpos("aba") = {3} </em></strong></li>
+	<li><strong><em>endpos("ba") = {3}</em></strong></li>
+	<li><strong><em>endpos("a") = {1,3} </em></strong></li>
+	<li><em><strong>endpos("ab")= {2}</strong></em></li>
+	<li><em><strong>endpos("b") = {2}</strong></em></li>
+	<li><em><strong>endpos(" ") = {-1,3}</strong></em></li>
+</ol>
+&nbsp;
+
+Therefore strings "aba" and "ba" are enpos equivalent and are part of same class , "b" and "ab" are equivalent they form a same class . Hey what about "a"? Well , he is a loner he forms are a separate class LOL :}. The last one is an empty substring , we take its endpos to be {-1, length(s)} , just assume it for now . Here is the pic of the example
+
+<img class="alignnone size-full wp-image-37" src="https://saisumit.files.wordpress.com/2016/01/suffix_automaton_sample_5.gif" alt="suffix_automaton_sample_5" width="228" height="71" />
+
+This forms the basis of constructing a suffix automaton, To generalize , "<strong><em>number of states or nodes in a suffix automaton is equal to number of endpos classes</em></strong>"..In this example it is equal to 4 .
+
+Did you notice something strange while listing the endpos of various substrings. Infact they are listed in suffix order "aba" -&gt;" ba" - &gt; "a". The "ab" - &gt; "b". Well there is a reason behind this
+
+<img class="alignnone size-full wp-image-44" src="https://saisumit.files.wordpress.com/2016/01/rln.png" alt="rln" width="395" height="58" />
+
+The proof of this is obvious. Another important observation regarding a given class is that if sort all the substrings in a given class in increasing order of length,<em><strong> "each substring will be shorter than the next one by one unit"</strong></em>, this follows immediately from the fact that the substrings included in one equivalent class are infact suffixes of each other , and take all sorts of different length from [ minlen(v) , len(v) ] where <em><strong>"len(v) is the length of the longest string included in a class and minlen(v) is the length of smallest string included in a particular class"</strong></em>. Therefore if we consider above example of "aba" and let "v" be the class consisting of {"aba","ba"} , then len(v) = 3 and minlen(v) = 2 ..
+<h3><span style="text-decoration: underline;"><em>Suffix  - Links</em> </span></h3>
+Consider Some state of automaton <em><strong>v</strong></em> != <strong><em><strong>(t<sub>o</sub>) </strong></em></strong> . As we know this state corresponds to  some class of strings with identical values of endpos and let <em><strong>"w" </strong></em>be the longest of these strings, therefore all other strings are suffixes of <em><strong>"w" </strong></em> , let first few suffixes of this string be contained in the same equivalence class (Considering suffixes in decreasing order of length) and all other suffixes in some other classes ,  <em><strong>then suffix link of "v"  leads to the state that contains the longest suffix of "w" that is in different endpos class , this leads to two properties. </strong> </em>
+<ol>
+	<li>  <img class="alignnone size-full wp-image-49" src="https://saisumit.files.wordpress.com/2016/01/2.png" alt="2" width="253" height="20" /></li>
+	<li>  <img class="alignnone size-full wp-image-50" src="https://saisumit.files.wordpress.com/2016/01/1.png" alt="1" width="250" height="20" /></li>
+</ol>
+<span style="line-height: 1.7;">In Our example let </span><em style="line-height: 1.7;"><strong>w = "aba" </strong></em><span style="line-height: 1.7;">and </span><em style="line-height: 1.7;"><strong>v = { "aba" , "</strong></em><span style="line-height: 1.7;"> ba" } therefore suffix link of </span><em style="line-height: 1.7;"><strong>v </strong></em><span style="line-height: 1.7;"> will correspond to state </span><b style="line-height: 1.7;"><i>{"a"} , </i></b><i style="line-height: 1.7;"></i><span style="line-height: 1.7;">lets call it </span><em style="line-height: 1.7;"><strong>" state r ",</strong> <strong>  </strong></em><span style="line-height: 1.7;">applying same thing to </span><em style="line-height: 1.7;"><strong>r </strong></em><span style="line-height: 1.7;">suffix link of </span><em style="line-height: 1.7;"><strong>r </strong></em><span style="line-height: 1.7;"> will point to empty substring. Another important observation is that every node has a suffix link except </span><strong style="line-height: 1.7;"><em><strong>(t<sub>o</sub>) </strong></em></strong><span style="line-height: 1.7;">because each node will have a suffix link to </span><strong style="line-height: 1.7;"><em><strong> </strong></em></strong><span style="line-height: 1.7;"> </span><strong style="line-height: 1.7;"><em><strong>(t<sub>o</sub>)</strong></em></strong> <span style="line-height: 1.7;">if there is no other node satisfying the condition.</span><strong style="line-height: 1.7;"> </strong>
+<blockquote><strong><em>Suffix Automaton  and  Suffix Link structure of string  "abcbc"</em></strong></blockquote>
+<img class="alignnone size-full wp-image-51" src="https://saisumit.files.wordpress.com/2016/01/3.gif" alt="3" width="461" height="369" />
+<h2><span style="text-decoration: underline;">Construction of Suffix Automaton in Linear Time</span></h2>
+<ol>
+	<li>The algorithm for construction of suffix-automaton is online i.e we construct by adding a single character to our previous string , modifying the previous structure, lets do it for string <em><strong>"aba"</strong></em>.</li>
+</ol>
+2. To achieve linear memory each state will consist of two values <em><strong>len</strong> (<span style="text-decoration: underline;">length of  longest suffix)</span><strong> , link (</strong></em><em><strong> </strong>suffix link of the state ).</em>
+
+3. Initially our structure consist of a single state<em>  <strong style="line-height: 1.7;"><em><strong>(t<sub>o</sub>), </strong></em></strong></em>which we shall assume to be zeroth state ( all other states will get numbers 1,2,3...). Assign this state len = 0 and link = -1 ( meaning non-realistic link) .
+
+4. Accordingly the whole task now is to add a single character <em><strong>"c"</strong></em> to the end of the current line.
+
+5. Let <em><strong>last </strong></em> is the state( node ) that corresponds to the entire current line before adding the symbol ( initially last = 0 ) and after adding each new character , we will change the value to ( 1 , 2 , 3 ....  and so on ).
+
+6. After adding a new character we will make a new node ( state ) <em><strong>" cur "</strong> <strong> </strong></em>, this is obvious as <em><strong>adding a new character increase the number of  endpos classes by atleast 1 as no previous substring can end at the position of "c " and also number of states == number of classes, this we have already discussed . we will assign  len(cur) = len(last) + 1  .F</strong></em>or finding the suffix-link of this state  and modifying the tree we will run  a loop as described below.<em><strong>   </strong></em>
+
+<em><strong>7.</strong> <strong> </strong></em>Till this time we  have a created a new state , initialized it but we haven't added it to our structure .  For doing so we will run a loop , initially we are at the <em><strong>"last"</strong></em> node of tree , if there is no edge/transition with label <em><strong>"c" </strong></em>we will add an edge between <em><strong>"last"</strong></em> and <em><strong>"cur" </strong></em>with the label <em><strong>"c" </strong></em>and move to the node pointed by the suffix link of  <em><strong>"last" </strong></em><em>change last to </em>suffix_link(last) , we will keep on doing this until we reach <em> <strong style="line-height: 1.7;"><em><strong>(t<sub>o</sub>) </strong></em></strong></em>or we encounter the condition mentioned in next point.
+
+8. If at some node the transition with label   <strong><em><strong>"c" </strong></em></strong>already exists , we will stop at that node  , let that state be represented by <em><strong>"p"  , </strong></em> let the state which is connected to <strong>"<em>p</em>" </strong>via transition with label "<em><strong>c" </strong></em>be represented by <em><strong>"q" </strong></em> , Now we have two cases depending upon if <em><strong>len(p) + 1 = len(q)</strong></em> or not -
+<ul>
+	<li>if <em><strong>len(p)</strong></em> + 1 = <em><strong>len(q)</strong></em> , we can simply assign link(<em><strong>"cur") </strong></em> = <em><strong>"q" </strong> and break ,<strong>  </strong></em>this happened because this case satisfied the condition of suffix link we discussed in <em><strong>"suffix link" </strong></em> section and hence we found the required suffix link.</li>
+	<li>Otherwise we will have to create a clone of state <em><strong>q </strong></em>with everything remaining same as state <em><strong>q </strong></em>except for the value of <em><strong>len</strong></em> such that <em><strong>len(clone) = len(p) +  1 </strong></em>and assign <em><strong>link</strong></em>(<em><strong>"cur") </strong></em> = <em><strong>"clone" </strong> and break.</em></li>
+</ul>
+9. If  point no. 8 never occurred we reach dummy state -1 ( link of <strong><em><strong>(t<sub>o</sub>) ) </strong></em></strong>, in this case we simply assigned <em><strong>link</strong></em>(<em><strong>"cur") = 0 </strong></em>and exit.
+
+TRYING OUR PROCEDURE ON <em><strong>"aba"</strong></em>
+
+<em><strong>NOTE -</strong> <strong> </strong></em>Red ones are suffix links and grey ones are transitions/edges
+
+<img class="alignnone size-full wp-image-69" src="https://saisumit.files.wordpress.com/2016/01/empty.gif" alt="empty" width="40" height="40" />
+
+<img class="alignnone size-full wp-image-86" src="https://saisumit.files.wordpress.com/2016/01/fin1.png" alt="fin1" width="207" height="130" />
+
+&nbsp;
+
+<img class="alignnone size-full wp-image-87" src="https://saisumit.files.wordpress.com/2016/01/fin2.png" alt="fin2" width="317" height="169" />
+
+<img class="alignnone size-full wp-image-88" src="https://saisumit.files.wordpress.com/2016/01/fin3.png" alt="fin3" width="440" height="169" />
+
+&nbsp;
+<blockquote><strong>NUMBER OF NODES IN SUFFIX AUTOMATON </strong></blockquote>
+Well to prove the linearity of the algorithm I need to prove that number of nodes made are linear in terms of number of characters in the string .  We have earlier discussed that nodes correspond to different " Endposn Classes " .  and we all proved earlier that any tow classes are either "<strong>disjoint or one is a subset of other</strong>" . That is
+
+<img class="alignnone size-full wp-image-44" src="https://saisumit.files.wordpress.com/2016/01/rln.png" alt="rln" width="395" height="58" />
+
+This forms the basis of the proof. The above property induces a tree structure of suffix automaton.  I will explain with this example
+
+<img class="alignnone size-full wp-image-122" src="https://saisumit.files.wordpress.com/2016/01/screenshot-from-2016-07-28-11-04-18.png" alt="Screenshot from 2016-07-28 11-04-18.png" width="691" height="414" />
+
+All leaves will be pairwise disjoint and thus there can be atmost n leaves  in a suffix automaton. Lets partition the nodes into two disjoint sets whether the val( longest string in a state )  is a prefix of the main string or not. the number of nodes in the first  case would be exactly n + 1 corresponding to each prefix of the string and end_posn class of each will consist of exactly one index corresponding to the end-index of prefix.
+
+Eg.  Let the string be "abc" then prefixes will be "" , "a","ab" ,"abc"
+
+We now count the number of nodes in the other subset of partition. Let v be the node and val(v) ( longest string in that state)  is not the prefix of the main string . Then val(v)  is a non empty word that occurs at atleast two different places, then only it will be disjoint to the previous partition of prefixes.  Thus it will have atleast two childs "p" and "q"  corresponding to suffix[p] = v and suffix[q] = v , but number of leaves are restricted to "n" therefore at best we can have  "  n + n/2 + n/4 + n/8 ... = 2*n " nodes which is a upper_bound of number of nodes.  To be exact it is 2*n - 2 and the worst case scenario occurs for strings like these  " abbbb..." .
+
+&nbsp;
+<h2><span style="text-decoration: underline;">IMPLEMENTATION AND CODE</span></h2>
+<pre></pre>
+<em><span style="text-decoration: underline;">Application of Suffix - Automaton </span></em>
+
+[code language="cpp"]
+struct state {
+    int len, link;
+    map<char,int>next;
+};
+ 
+const int MAXLEN = 100000;
+state st[MAXLEN*2];
+int sz, last;
+ 
+void sa_init() {
+    sz = last = 0;
+    st[0].len = 0;
+    st[0].link = -1;
+    ++sz;}
+ 
+void sa_extend (char c) {
+    int cur = sz++;
+    st[cur].len = st[last].len + 1;
+    int p;
+    for (p=last; p!=-1 && !st[p].next.count(c); p=st[p].link)
+        st[p].next[c] = cur;
+    if (p == -1)
+        st[cur].link = 0;
+    else {
+        int q = st[p].next[c];
+        if (st[p].len + 1 == st[q].len)
+            st[cur].link = q;
+        else {
+            int clone = sz++;
+            st[clone].len = st[p].len + 1;
+            st[clone].next = st[q].next;
+            st[clone].link = st[q].link;
+            for (; p!=-1 && st[p].next[c]==q; p=st[p].link)
+                st[p].next[c] = clone;
+            st[q].link = st[cur].link = clone;
+        }
+    }
+    last = cur;
+}
+[/code]
+
+1 . <em><strong>Finding number of distinct substrings :</strong></em> Hey I know its been quite long reading this , but did you remember the 2nd paragraph of this blog which mentioned that every path in a suffix  automaton corresponds to a substring , so yes what we need to do is just find the number of different paths which is indeed equal to the number of distinct substrings. Here is the code for that. Everything remains same except instead of map we used a 26 word array , its actually just a <em><strong>DFS </strong></em>of the suffix automaton.
+
+[code language="cpp"]
+vector<int>d(MAXLEN,0);
+ 
+int distsub(int ver)
+{  int  tp = 1  ;
+ 
+   if(d[ver])
+     return d[ver];
+ 
+   for(int i=0;i<26;i++)
+     if( st[ver].next[i] )
+         tp+= distsub(st[ver].next[i]);
+ 
+   d[ver]=tp;
+   return d[ver];
+}
+[/code]
+
+2 .<em><strong>Total Length of all</strong></em><em><strong> distinct substrings :</strong></em> For this we need to look at things more closely. Consider
+<pre><img class="alignnone size-full wp-image-89" src="https://saisumit.files.wordpress.com/2016/01/fin4.png" alt="fin4" width="620" height="342" /></pre>
+&nbsp;
+
+<strong>HERE IS THE CODE FOR FINDING THE LENGTH OF ALL SUBSTRINGS</strong>
+
+[code language="cpp"]
+vector<int>ans(MAXLEN,0);
+ 
+int lesub( int ver)
+{ int  tp = 0  ;//To Find Words just add length of words instead of 1
+ 
+   if(ans[ver])
+     return ans[ver];
+ 
+   for(int i=0;i<26;i++)
+     if( st[ver].next[i] )
+         tp = lesub(st[ver].next[i]) + d[st[ver].next[i]];
+ 
+   ans[ver]=tp;
+   return ans[ver];
+ 
+}
+[/code]
+
+<strong>3) The Lexographically kth substring</strong>
+
+The solution to this problem is based on the same idea as previous two tasks. To find the kth Lexographically substring we searched for the kth path moving from the root and rest is taken care by our map or array which already have sorted keys/alphabets so that we always pick the transition with smallest possible character thereby maintaining the lexicographical order.
+
+<strong>HERE IS THE C++ CODE FOR FINDING THE KTH LEXICOGRAPHICAL SUBSTRING </strong>
+
+[code language="cpp"]
+
+void   klex(int ver)
+{
+   vector<int>ans;
+   for(int i=0;i<26;i++)
+     if( st[ver].next[i]  )
+       { path++;
+         if (path==k)
+           { ans.push_back((char)('a' + i));
+                        return;}
+ 
+             klex(st[ver].next[i],ans);
+                 if (path==k)
+              { ans.push_back((char)('a' + i));
+                  return;}
+ 
+                  }
+ 
+}
+
+[/code]
+
+&nbsp;
+
+<em><strong>4) Smallest Cyclic Shift to obtain lexicographical smallest of All possible  </strong></em>
+
+Consider string "aba" then the minimum cyclic shift is '1' because by shifting the pattern by one we get string "aab" which is lexicographically smallest of all possible ( "aba" , "aab", "baa" ) . For solving this problem we build the suffix automaton of <em><strong>"String + String"</strong></em>  Now the problem is reduced to above problem where k = 1 , solving until we get substring of length = length of given string,
+
+<span style="text-decoration: underline;"><strong>C++ IMPLEMENTATION</strong></span>
+
+Don't worry about the fpos part that is done to find the start position of minimum lexicographical string so that we can find number of shifts.
+
+[code language="cpp"]
+int  tp = 0 ;
+string s;
+int t = s.length();
+s = s+s;
+void   minshift(int ver)
+{
+ 
+  
+   for(int i=0;i<26;i++)
+     if( st[ver].next[i] )
+         { tp++;
+  
+            if(tp==t)
+              {cout<<st[ver].fpos - t + 2<<endl;
+               break ;}
+  
+           minshift(st[ver].next[i]);
+                  break;
+  
+                  }
+}
+ 
+[/code]
+
+&nbsp;
+
+<em><strong>5)  </strong></em><span style="text-decoration: underline;"><em><strong>POSITION OF FIRST OCCURRENCE </strong></em></span>
+
+Given a text T and we receive request of the form : given a pattern P  we need to know the position of first occurrence of P in T .
+
+To solve  this we will build the suffix automaton of the Text T , we also need to add in the preprocessing finding fpos (  first position of occurrence) for all states of automaton, such that fpos[cur] = len[cur] - 1 and fpos[clone] = fpos[q] , then answer to our query is simply equal to fpos[t] - p.length() + 1  where "t" is the state corresponding to pattern , p is the pattern. Here is the code
+
+[code language="cpp"]
+
+st[cur].fpos = st[cur].len - 1;
+st[clone].fpos = st[q].fpos;
+at appropriate positions in sa_extend function */
+ 
+int firstpostn()
+{  int s_t = 0 ;
+   int vtx = 0;
+   int u =s_t;
+    while(s_t<p.length())
+     {vtx = st[vtx].next[p[s_t] - 'a'];
+       s_t++;}
+ 
+   cout<<st[vtx].fpos - p.length() + 1 <<endl;
+}
+ 
+
+[/code]
+
+&nbsp;
+
+&nbsp;
+
+<em><strong>6 )</strong></em><em><strong> </strong></em><span style="text-decoration: underline;"><em><strong> COUNT NUMBER OF OCCURRENCES </strong></em></span>
+
+To solve this we need to build  suffix automaton of S , along with this we also need to make a preprocessing for each state <em><strong>v </strong></em>to find <em><strong>count[v] </strong></em>which is equal to the size of endpos(v)  since it would not be possible to store all suffixes in endpos(v) , we will instead store its size. For each state , other than initial state or states obtained by cloning we initially assign <em><strong>count[v]</strong></em> = 1 . Then we will go over all the states  in descending order of their length <em><strong>len </strong></em> and calculate <em><strong>count[v] using count[link[v]] += count[v] . </strong></em>After this answer to query is <em><strong>count[t] </strong></em> where <em><strong>" t  is the state of the pattern ".  Here is the code which find occurrences of pattern string "pa" in main string "s".
+</strong></em>
+
+[code language="cpp"]
+
+set<pair<int,int> base ;
+int s_t = 0
+/* ADD these 4 lines at appropriate places in sa_extend function
+ 
+     cnt[cur] = 1 ;
+     base.insert(make_pair(st[cur].len, cur));
+ 
+     cnt[clone]=0;
+     base.insert(make_pair(st[clone].len,clone)); 
+ 
+*/
+ 
+   int repstr()
+{
+  set::reverse_iterator it;
+  for(  it=base.rbegin(); it!=base.rend(); it++ )
+       cnt[ st[ it -> second ].link ] += cnt[ it->second ];
+ 
+   int vtx = 0;
+ 
+    while(s_t<=pa.length()-1)
+     {vtx = st[vtx].next[pa[s_t] - 'a'];
+       s_t++;}
+ 
+   cout<<cnt[vtx]<<endl;
+}
+  [/code]
+
+7)  <em><strong><span style="text-decoration: underline;">LONGEST COMMON SUBSTRING OF TWO STRINGS</span></strong></em>
+
+&nbsp;
+
+We now go on line <img class="tex" src="http://e-maxx.ru/tex2png/cache/0e738dc1c640233f2c460e261c522f78.png" alt="T" />and look for each prefix of the longest suffix prefix <img class="tex" src="http://e-maxx.ru/tex2png/cache/7af761eb0d1f3ce7b5a85ce3d8902662.png" alt="S" />occurring. In other words, for each position in the line <img class="tex" src="http://e-maxx.ru/tex2png/cache/0e738dc1c640233f2c460e261c522f78.png" alt="T" />  we want to find of the longest common substring <img class="tex" src="http://e-maxx.ru/tex2png/cache/7af761eb0d1f3ce7b5a85ce3d8902662.png" alt="S" />and <img class="tex" src="http://e-maxx.ru/tex2png/cache/0e738dc1c640233f2c460e261c522f78.png" alt="T" />ending at that position.
+
+To do this, we will support the two variables: <b>the current state</b> <img class="tex" src="http://e-maxx.ru/tex2png/cache/9530057de1d317139fef00be858ff2f1.png" alt="v" /> and <b>the current </b><img class="tex" src="http://e-maxx.ru/tex2png/cache/c389ea8fa0131816bbcd01a1fbacec19.png" alt="l" />length. These two variables will describe the current matching part: its length and state that corresponds to it.
+
+Initially, <img class="tex" src="http://e-maxx.ru/tex2png/cache/3d352ccb2efdf1cefd1a5d58a9b9b4d7.png" alt="p = t_0" /> and  <img class="tex" src="http://e-maxx.ru/tex2png/cache/3a6470a4093c14285c95aa9d6092752d.png" alt="l = 0" />  i.e  empty match .
+
+Now let us consider the character <img class="tex" src="http://e-maxx.ru/tex2png/cache/5ea9c71c996e6deb5974c0706a78c1b5.png" alt="T [i]" /> and we want to recalculate the answer for it.
+<ul>
+	<li>If the state of <img class="tex" src="http://e-maxx.ru/tex2png/cache/9530057de1d317139fef00be858ff2f1.png" alt="v" /> the automaton has  a transition with label  <img class="tex" src="http://e-maxx.ru/tex2png/cache/5ea9c71c996e6deb5974c0706a78c1b5.png" alt="T [i]" /> , we simply commit this change and increase <img class="tex" src="http://e-maxx.ru/tex2png/cache/c389ea8fa0131816bbcd01a1fbacec19.png" alt="l" /> by one.</li>
+	<li>And if the state <img class="tex" src="http://e-maxx.ru/tex2png/cache/9530057de1d317139fef00be858ff2f1.png" alt="v" />is not of the desired transition, then we should try to shorten the current matching portion for which it is necessary to go to suffix link:
+<p class="formula"><img class="tex" src="http://e-maxx.ru/tex2png/cache/76f5b5c4b592a5e82a7a6b8dc367bf36.png" alt=" link = v (v). " /></p>
+<p class="formula"><img class="tex" src="http://e-maxx.ru/tex2png/cache/bac8811d281b952a0ed41085769f0839.png" alt=" l = len (v). " /></p>
+Unless we find a new state with required transition or we reach a  fictitious state <img class="tex" src="http://e-maxx.ru/tex2png/cache/fc5f9135f75a6da19325dc3822484bbd.png" alt="-1" /> , we have to go on the suffix link.</li>
+</ul>
+The answer to the problem will be a maximum of the values <img class="tex" src="http://e-maxx.ru/tex2png/cache/c389ea8fa0131816bbcd01a1fbacec19.png" alt="l" />for all time rounds.
+
+<span style="text-decoration: underline;">Here is the code For that</span>
+
+[code language="cpp"]
+
+string lcs (string s, string t) {
+    sa_init();
+    for (int i=0; i<(int)s.length(); ++i)
+        sa_extend (s[i]);
+  
+    int v = 0,  l = 0,
+        best = 0,  bestpos = 0;
+    for (int i=0; i<(int)t.length(); ++i) {
+        while (v && ! st[v].next.count(t[i])) {
+            v = st[v].link;
+            l = st[v].length;
+        }
+        if (st[v].next.count(t[i])) {
+            v = st[v].next[t[i]];
+            ++l;
+        }
+        if (l > best)
+            best = l,  bestpos = i;
+    }
+    return t.substr (bestpos-best+1, best);
+}
+
+[/code]
+After this long post  we have come to an end for a new beginning ,  hope you enjoyed reading this post :) , I  will love to hear from you , do reply and give me an opportunity to improve my self . Happy coding :)
+For furthur reference read translate version of -
+<a href="http://e-maxx.ru/algo/suffix_automata">SUFFIX AUTOMATA</a>
+
+OR 
+<a href="https://books.google.co.in/books?id=9NdohJXtIyYC&pg=PA70&lpg=PA70&dq=number+of+nodes+in+suffix+automaton&source=bl&ots=ln9h5BJ6Ia&sig=8-s8u2KDSJEnIzy4b524PK1pu3I&hl=en&sa=X&ved=0ahUKEwjRmNGdrJXOAhVFRo8KHcSBD68Q6AEIUzAJ#v=onepage&q=number%20of%20nodes%20in%20suffix%20automaton&f=true">JEWELS OF STRINGOLOGY</a>
+ 
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+<em><strong> </strong></em>
+
+&nbsp;
+
+&nbsp;

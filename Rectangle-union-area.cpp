@@ -19,15 +19,14 @@ int sum[maxN << 5], counter[maxN << 5];
 vector<Edge> edges;
 
 
+
 void print ( )
 {   int maxsize=ceil(log2(num));
      maxsize=2*pow(2,maxsize)-1;
 
    for(int i= 1 ; i<=maxsize ; i++ )
-    {
-
- cout<<sum[i]<<" ";
-    }
+          cout<<sum[i]<<" ";
+    
     cout<<endl;
 
 }

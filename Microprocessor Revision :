@@ -1,0 +1,413 @@
+Microprocessor Revision : 
+
+Intel  4004 :  4 bit ALU 
+Intel  8008 :  8 bit alu lekin 20 se zyaada chips required
+8080 : reuired 3 chips lekin +5 -5 +12 
+6800 : ek power +5 
+8085 : ek power +5 
+6089 : some 16 bit instructions fast 
+8086 : complete 16 bit 
+68000 : 16 bit but couldnt compete
+
+8085 : 
+1) only one volrage required 
+2) 3.2 Mgh 
+3) 8 bit microprocessor 
+4) 6800 nmos
+
+
+Diagram  
+xxrss , trrrii , vhhcrr , sawrsi 
+
+passing parameters through different ways :: 
+1) Using registers 
+2) Using Specified mempry locations 
+3) Using pointers 
+4) Using stack 
+
+DATA SEGMENT 
+  BCD_INPUT  DB 23 
+  BCD_OUT    DB / 
+DATA ENDS 
+
+STCK  STACK
+     DB  DUP(100) ; 
+     STCK_TOP LABEL WORD 
+STCK ENDS 
+
+CODE SEGMENT 
+     ASSUME CS:CODE ,  DS:DATA , SS:STCK 
+
+     START : 
+     MOV AX,  DATA 
+     MOV DS , AX 
+     MOV AX ,  STCK 
+     MOV SS, AX
+     MOV SI , STCK_TOP 
+     CALL BCD_BIN 
+     MOV  BCD_OUT  , AL 
+     
+     BCD_BIN  PROC NEAR  :
+     // USE THE APPROPRIATE FUNCTION 
+     RET  
+     BCD_BIN  ENDP   
+
+
+// USING REGISTERS
+ 
+ DATA SEGMENT
+      BCD_INPUT DB  23 
+      BCD_OUT   DB  ? 
+ DATA ENDS      
+
+ STCK  STACK 
+       DB DUP(100) ; 
+       STCK_TOP LABEL WORD 
+ STCK  ENDS 
+ 
+ CODE SEGMENT 
+      ASSUME CS:CODE ,  DS:DATA , SS:STCK
+      START:  
+         MOV  AX , DATA  
+         MOV  DS , AX
+         MOV  AX , STCK
+         MOV  SS , AX 
+         MOV  AL , BCD_INPUT 
+         CALL BCD_BIN 
+         MOV  BCD_OUT , AL  
+         
+        BCD_BIN PROC NEAR:  
+            PUSH CX 
+            PUSH BX 
+            PUSHF
+
+            MOV BL , AL  
+            AND BL , 0FH 
+            MUL BL , 0AH 
+            AND AL , F0H 
+            ROR AL , 04H 
+            ADD AL , BL 
+
+            POPF
+            POPBX 
+            POPCX  
+            RET
+        BCD_BIN ENDP 
+            
+CODE ENDS 
+END START       
+
+
+// USING MEMORY DIRECTLY 
+
+DATA SEGMENT
+     BCD_INPUT DB 21H 
+     BCD_OUT   DB  ?   
+DATA ENDS 
+             
+STCK STACK  
+     DW 100 DUP(0)
+     STCK_TOP LABEL WORD 
+STCK ENDS 
+
+CODE SEGMENT 
+     ASSUME CS:CODE  , SS:STCK , DS:DATA 
+     START: 
+           MOV AX , DATA 
+           MOV DS,  AX
+           MOV AX,  STCK 
+           MOV SS, STCK
+           MOV SP,STCK_TOP 
+           CALL BCD_BIN 
+           MOV  BCD_OUT,AL
+
+            BCD_BIN PROC NEAR 
+             MOV AL , BCD_INPUT 
+             MOV BL , AL  
+             AND BL , 0FH 
+             MUL BL , 0AH 
+             AND AL , F0H 
+             ROR AL , 04H 
+             ADD AL , BL 
+             RETURN 
+            BCD_BIN ENDP 
+CODE ENDS 
+END START 
+
+LIMITATION :
+THE PROGRAM IS LIMITTED TO THE SPECIFIED MEMORY LOCATIONS
+CHANGES NEED TO BE MADE N PROCEDURE 
+ISSUE IN CODE RIENTERENT ( WHEN THERE IS AN INTERRUPT WHCIH NEEDS TO BE SERVICED THIS CAN RESULT IN REPLACING THT MEMORY LOCCATION WITH SOME OTHER VALUE 
+THEREBY CAUSING ISSUE )
+
+// USING POINTER 
+
+
+DATA SEGMENT
+     BCD_INPUT DB 21H 
+     BCD_OUT   DB  ?   
+DATA ENDS 
+             
+STCK STACK  
+     DW 100 DUP(0)
+     STCK_TOP LABEL WORD 
+STCK ENDS 
+
+CODE SEGMENT 
+     ASSUME CS:CODE ,  DS:DATA , SS:STCK 
+     START : 
+     MOV AX , DATA 
+     MOV DS , AX 
+     MOV AX , STCK 
+     MOV SS , AX 
+     MOV SP , STACK_TOP 
+     MOV SI , OFFSET BCD_INPUT 
+     MOV DI , OFFSET BCD_OUTPUT
+     
+     CALL BCD_BIN 
+     
+     BCD_BIN PROC NEAR 
+
+     MOV AL , [SI]
+    
+             MOV BL , AL  
+             AND BL , 0FH 
+             MUL BL , 0AH 
+             AND AL , F0H 
+             ROR AL , 04H 
+             ADD AL , BL   
+
+     MOV [DI] , AL  
+     RETURN  
+     BCD_BIN ENDP 
+
+LIMITATION :  LIMITED NUMBER OF POINTER REGISTERS  ( TO AVOID THIS AN ARRAY  OF POINTER ) BUT NUMBER OF PARAMETERS REMAIN LIMITED 
+
+PASSING PARAMETERS  USING STACK 
+// LIMITATION : SIZE OF STACK IS LIMITED 
+1)  PUSH THE PARAMETERS TO BE WORKED ON FIRST TO THE STACK 
+2)  PROCEDURE POPS THESE VALIES PERFORMS OPERTAIONS 
+3)  PUSHED THE CHANGES BACK TO THE STACK 
+
+
+DATA SEGMENT
+     BCD_INPUT DB 21H 
+     BCD_OUT   DB  ?   
+DATA ENDS 
+             
+STCK STACK  
+     DW 100 DUP(0)
+     STCK_TOP LABEL WORD 
+STCK ENDS 
+
+CODE SEGEMENT 
+     ASSUME CS:CODE, DS:DATA , SS:STACK
+     START:
+           MOV AX , DATA
+           MOV DS , AX 
+           MOV AX , STCK 
+           MOV SS ,  AX 
+           MOV SP  ,  STCK_TOP
+           MOV  AX , BCD_INPUT  
+           PUSH AX   // 2 
+           CALL BCD_BIN  
+           POP AX  
+           MOV BCD_OUT ,  AL 
+
+           BCD_BIN PROC NEAR // 2 
+           PUSHF // 2 
+           PUSH AX  // 2 
+           PUSH BX  // 2
+           PUSH CX  // 2 
+           PUSH BP //  2 
+           MOV  BP , SP    
+           MOV AX ,  [BP+12] 
+           // PERFORM  OPERATIONS 
+           MOV [BP+12],AX 
+           POP  BP 
+           POP  CX 
+           POP  BX 
+           POP  AX
+           POPF 
+           RET 
+           BCD_BIN ENDP   
+
+CODE ENDS      
+        
+
+CALLING A FUNCTIOND DECLARED IN AANOTHER SEGMENT OR IMPLEMENTING A FAR CALL 
+
+IT IS DONE BECUASE BOTH THE CODE SEGMENT AND THE IP OF TNE INSTRUCTION CHANGES
+
+CODE SEGMENT 
+     ASSUME CS: CODE , DS:  DATA , SS:STACK_SEG 
+     .... . 
+     .... 
+     .... . 
+     CALL MULTIPLY_32 
+CODE ENDS
+d
+
+PROCEDURES SEGMENT 
+     MULTIPLY_32 PROC FAR 
+       ASSUME CS:PROCEDURES 
+       ... 
+       ...
+     MULTIPLY_32 ENDP 
+PROCEDURES ENDS 
+           
+ASM - > ASSEMBLE  -> .OBJ -> LINK -> .EXE/.LNK -> LOAD - >RUN -> TEST 
+
+ACCESSING A PROCEDURE AND DATA IN A SEPARATE ASSEMBLY MODULE 
+
+
+ASM_MODULE -> ASSEMBLE -> .OBJ \ 
+                                - > LINK -> .LNK/.EXE -> .BIN_FILE -> LOAD -> RUN -> TEST 
+ASM_MODULE -> ASSEMBLE -> .OBJ /
+
+
+
+
+WRITING CODE IN TWO DIFFERENT MODULES 
+
+DATA1 SEGMENT PUBLIC  // THIS SEGMENT IS DECLARED PUBLIC , AT THE TIME OF LINKING,  IF ANOTHER MODULE ALSO HAS THE NAME DATA1 SEGMENT ( SAME NAME ) THESE MODULE GET COMBINED AND ARE STORED AT CONSECUTIVE RELATION 
+
+DATA1 SEGMENT PUBLIC 
+TEMP  DB 15H 
+DATA1 ENDS 
+
+DATA2 SEGMENT 
+TEMP2 DB 14H 
+DATA2 ENDS 
+zs
+PUBLIC TEMP
+
+STACK1 SEGMENT 
+DB 50 DUP ( ? )
+TOP LABEL BYTE 
+STACK1 ENDS 
+
+IF WE WANT TO CALL A PROCESS THAT IS NOT  IN THE MODULE THEN WE NEED TO TELL THAT IT IS ANOTHER MODULE USING EXTERN KEYWORD
+
+
+PROC1 SEGMENT PUBLIC 
+ EXTERN PROC PROCEDUR1 FAR 
+PROC1 ENDS  
+// IF THE VARIABLE/PROCEDURE IS DECLARED PUBLIC THEN IT IS SPECIFIED OUTSIDE THE SEGMENT
+ 
+
+
+//  coding an if -  then program 
+
+CODE SEGMENT 
+     ASSUME CS:CODE 
+     MOV DX , 01H // OUTPUT PORT 
+     MOV AL , 01H 
+     OUT DX , AL 
+
+     MOV   DX, 01H 
+     IN  AL, DL 
+     CMP 
+     JZ  FIN
+     JMP NEXT   
+     FIN: // 
+     NEXT: // 
+
+  // IF THEN ELSE 
+  
+  CODE SEFMENT 
+    ASSUME CS: CODE 
+
+    MOV DX , 05H 
+    MOV AL, 05H 
+    OUT DX , AL 
+
+    CMP AL, BL 
+    JZ FIN 
+    JZ NEXT  
+    FIN:
+     JMP  EXIT 
+    NEXT: 
+     
+     ; ABSTRACT :: WRITE ABOUT THE PROGRAM 
+     ; PORTS USED :  WRITE ABOUT PORTS 
+     ; REGISTERS USED 
+     ; SEGMENTS USED 
+
+   //  CODIG A REPEAT UNTIL STATEMENT 
+   
+
+
+
+
+STRING / PROCEDURES /  MACROS 
+
+DATA SEGMENT 
+     STR DB 'THIS IS HOW I PRACTISE'
+     DB  100 DUP(?)
+     COPY DB 28(?) 
+DATA ENDS 
+
+CODE SEGMENT 
+     ASSUME CS:CODE , DS:DATA 
+     START: 
+           MOV AX ,  DATA 
+           MOV DS , AX  
+           LEA SI , STR 
+           LEA DI , COPY 
+           MOV CX , 03H 
+           CLD 
+           REP  MOVSB 
+CODE ENDS
+END STARTR 
+
+
+PROGRAM TO CHECK THE PASSWORD OF THE PROGRAM 
+
+DATA SEGMENT 
+     STR DB 'tHIS IS HOW I PRACTIS'
+     LENGTH DB ($-STR)
+     NEW DB 100 DUP(?) 
+DATA ENDS
+
+CODE SEGMENT 
+     ASSUME CS:CODE ,  DS:DATA 
+     START: 
+           MOV AX ,  DATA 
+           MOV DS,  AX 
+           LEA SI , STR 
+           LEA DI ,  NEW 
+           MOV CX ,  LENGTH 
+           CLD 
+           REP CPMSB 
+           JZ MATCH 
+           JZ NOMATCH     
+CODE ENDS 
+END START 
+
+
+CALL INSTRUCTIONS
+ 
+
+1) database system resides in the physical memory 
+2) They are partitioned innto logical units called blocks 
+3) Each block may contain several data 
+4) Whenever we need to make changes first the block is brought into the main memory 
+5) blocks residing on the disk are called physical blocks ,  blocks on main memory buffer blocks ,  memory where they reside disk-buffer.\
+
+block_movements 
+1) input (B) : transfers block from physical to main memory 
+2) output(b) : transfers block from main to physical memory 
+
+Each transaaction has its own wrorking area in main memory in which copies of data item is accessed and modified. 
+The system creates its work station when transaction is created and removes when it commits 
+Each data item X kept in the work area of transaction Ti is denoted by xi. The transaction interacts with databasse system by transferring data two and from its work aarea to systemm buffer,
+operations 
+Read(X) :  assigns the value of X to the xi  
+Outpput(X) : assigns the value of xi  to X 
+if the physical block X is not in main memory then it is first brought to main memory and after soome timee blocks are pushed into the physical memory using forced output 
+ 
+
+
+
+
