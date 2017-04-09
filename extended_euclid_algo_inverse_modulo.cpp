@@ -1,4 +1,4 @@
-/* This function return the gcd of a and b followed by
+/* Check the condition before using it *//* This function return the gcd of a and b followed by
     the pair x and y of equation ax + by = gcd(a,b)*/
 pair<int, pair<int, int> > extendedEuclid(int a, int b) {
     int x = 1, y = 0;
